@@ -37,7 +37,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
         <input type="submit" name="signup" value="Register">
     </form>
 
-    <span>Already a User? <a href="/AuthProject/Login">Log-In</a></span>
+    <span>Already a User? <a href="/AuthProject/Users/login">Log-In</a></span>
 </body>
 
 </html>

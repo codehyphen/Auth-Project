@@ -1,7 +1,3 @@
-<?php
-defined('BASEPATH') or exit('No direct script access allowed');
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -9,7 +5,6 @@ defined('BASEPATH') or exit('No direct script access allowed');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
 
@@ -21,6 +16,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
     <!-- Latest compiled JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
     <style>
         .error{
             color: red;
@@ -29,20 +25,20 @@ defined('BASEPATH') or exit('No direct script access allowed');
 </head>
 
 <body>
-    <h2>Login</h2>
-    <span class="error"><?php echo (!empty($error) ? $error : '') ?></span><br>
+    <h2>Create New Password</h2>
+    <span class="error"><?php echo (!empty($error) ? $error : '')?></span>
     <form method="post">
-        <label>Email or Username</label>
-        <input type="text" name="emailorUsername" placeholder="Enter Email or Username" value="<?= set_value('emailorUsername', (!empty($email) ? $email : '')) ?>"><br>
-        <?= form_error('emailorUsername') ?>
+        <label>Email</label>
+        <input type="text" name="email" placeholder="Enter Email"><br>
+        <?= form_error('email') ?>
         <label>Password</label>
-        <input type="password" name="password" placeholder="Enter Password" value="<?= set_value('password', (!empty($password) ? $password : '')) ?>"><br>
+        <input type="password" name="password" placeholder="Enter Password"><br>
         <?= form_error('password') ?>
-        <input type="submit" name="login" value="Login">
+        <label>Confirm Password</label>
+        <input type="password" name="confirm_password" placeholder="Confirm Password"><br>
+        <?= form_error('confirm_password') ?>
+        <input type="submit" name="reset" value="Reset">
     </form>
-
-    <span>New User? <a href="/AuthProject/Users/register">Sign-Up</a></span><br>
-    <a href="/AuthProject/Users/resetpassword">Forget Password</a>
 </body>
 
 </html>
