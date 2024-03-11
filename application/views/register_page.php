@@ -20,9 +20,16 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
     <!-- Latest compiled JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <style>
+        .error{
+            color: red;
+        }
+    </style>
 </head>
 
 <body>
+    <span class="error"><?php echo (!empty($error) ? $error : '') ?></span><br>
     <h2>Create Account</h2>
     <form method="post">
         <label>Username</label>

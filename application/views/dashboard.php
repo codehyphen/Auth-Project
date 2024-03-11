@@ -17,27 +17,12 @@
     <!-- Latest compiled JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 
-    <style>
-        .error{
-            color: red;
-        }
-    </style>
 </head>
 
 <body>
-    <h2>Create New Password</h2>
-    <span class="error"><?php echo (!empty($error) ? $error : '')?></span>
-    <form method="post">
-        <label>Email</label>
-        <input type="text" name="email" placeholder="Enter Email"><br>
-        <?= form_error('email') ?>
-        <label>New Password</label>
-        <input type="password" name="password" placeholder="Enter Password"><br>
-        <?= form_error('password') ?>
-        <label>Confirm Password</label>
-        <input type="password" name="confirm_password" placeholder="Confirm Password"><br>
-        <?= form_error('confirm_password') ?>
-        <input type="submit" name="reset" value="Reset">
+    <h1>Welcome To Home</h1>
+    <form id="logout-form" action="<?php echo site_url('/Users/logout'); ?>" method="post">
+        <button type="submit">Logout</button>
     </form>
 </body>
 

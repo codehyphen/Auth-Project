@@ -8,11 +8,9 @@ class Users extends CI_Controller
         parent::__construct();
         $this->load->library('form_validation');
         $this->load->helper('form');
+        $this->load->model('Api');
     }
 
-    public function index()
-    {
-    }
 
     public function register()
     {
@@ -26,18 +24,14 @@ class Users extends CI_Controller
         $this->form_validation->set_rules('password', 'Password', 'required|trim');
 
         if ($this->form_validation->run()) {
-            $username_check = $this->db->like('username', (string)$data['username'])->from('users')->count_all_results();
-            $email_check = $this->db->like('email', (string)$data['email'])->from('users')->count_all_results();
-
-            if ($username_check == 0 && $email_check == 0) {
+            $status = $this->Api->register($data);
+            if ($status == 1) {
                 echo "Thank you for Creating Account, you can Login Now";
-                $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
-                $this->db->insert('users', $data);
-            } else if ($username_check > 0) {
-                echo "Username Already exist";
+            } else if ($status == 2) {
+                $data['error'] = "Username Already exist";
                 $this->load->view('register_page', $data);
-            } else if ($email_check > 0) {
-                echo "Email Already Registered";
+            } else {
+                $data['error'] = "Email Already Registered";
                 $this->load->view('register_page', $data);
             }
         } else {
@@ -50,89 +44,27 @@ class Users extends CI_Controller
         $data['emailorUsername'] = $this->input->post('emailorUsername');
         $data['password'] = $this->input->post('password');
 
-        $is_userLogin_blocked = false;
-
 
         $this->form_validation->set_rules('emailorUsername', 'Email or Username', 'required|trim');
         $this->form_validation->set_rules('password', 'Password', 'required|trim');
 
         if ($this->form_validation->run()) {
-            $email_check = $this->db->where('email', (string)$data['emailorUsername'])->from('users')->count_all_results();
-            $username_check = $this->db->where('username', (string)$data['emailorUsername'])->from('users')->count_all_results();
+            $status = $this->Api->login($data);
 
+            if ($status == 1) {
+                $user_data = array(
+                    'emailorUsername' => $data['emailorUsername'],
+                );
+                $this->session->set_userdata('user_data', $user_data);
 
-
-            // $this->db->select('password');
-            // $this->db->from('users'); 
-            // $this->db->where('email', (string)$data['email']);
-            // $query = $this->db->get();
-
-            // if ($query->num_rows() > 0) {
-            //     $row = $query->row();
-            //     $password = $row->password;
-
-            //     if(password_verify((string)$data['password'], $password)){
-            //         echo 'Login Successfull';
-            //     }else{
-            //         echo 'Incorrect Email or Password';
-            //     }
-            // }else{
-            //     echo "Email id not Registered";
-            //     $this->load->view('login_page', $data);
-            // }
-
-            if ($email_check > 0) {
-
-                $query = $this->db->select('password')->from('users')->where('email', (string)$data['emailorUsername'])->get();
-                $row = $query->row();
-                $password = $row->password;
-
-                // $failed_attempts = $this->db->select('failed_attempts')->where('email', (string)$data['emailorUsername'])->get();
-
-                $blockedStatus = $this->checkBlockedStatus((string)$data['emailorUsername'], null);
-
-                if ($blockedStatus) {
-                    $data['error'] = 'Login After 30 min';
-                    $this->load->view('login_page', $data);
-                    return;
-                }
-
-
-                if (password_verify((string)$data['password'], $password)) {
-                    // check if the failed attemps are greator than 3 and last_failed_attempt is more than 30 min.
-
-                    // After Successful login Reset failed attemps to 0
-                    $this->db->set('failed_attempts', '0', FALSE)->where('email', (string)$data['emailorUsername'])->update('users');
-                    echo 'Login Successfull via email';
-                } else {
-                    $data['error'] = 'Invalid Credentials';
-                    $this->db->set('failed_attempts', 'failed_attempts+1', FALSE)->where('email', (string)$data['emailorUsername'])->update('users');
-                    $this->db->set('last_failed_attempt', 'NOW()', FALSE)->where('email', (string)$data['emailorUsername'])->update('users');
-                    $this->load->view('login_page', $data);
-                }
-            } else if ($username_check > 0) {
-                $query = $this->db->select('password')->from('users')->where('username', (string)$data['emailorUsername'])->get();
-                $row = $query->row();
-                $password = $row->password;
-
-                $blockedStatus = $this->checkBlockedStatus(null, (string)$data['emailorUsername']);
-
-                if ($blockedStatus) {
-                    $data['error'] = 'Login After 30 min';
-                    $this->load->view('login_page', $data);
-                    return;
-                }
-
-                if (password_verify((string)$data['password'], $password)) {
-                    echo 'Login Successfull via username';
-                } else {
-                    $data['error'] = 'Invalid Credentials';
-                    $this->db->set('failed_attempts', 'failed_attempts+1', FALSE)->where('username', (string)$data['emailorUsername'])->update('users');
-                    $this->db->set('last_failed_attempt', 'NOW()', FALSE)->where('username', (string)$data['emailorUsername'])->update('users');
-                    $this->load->view('login_page', $data);
-                }
-            } else {
+                // Set session expiration time
+                $this->session->set_userdata('session_expire', time() + 600);
+                header("Location: /AuthProject/Dashboard");
+            } else if ($status == 2) {
                 $data['error'] = 'Invalid Credentials';
+                $this->load->view('login_page', $data);
+            } else {
+                $data['error'] = 'Login After 30 min';
                 $this->load->view('login_page', $data);
             }
         } else {
@@ -152,48 +84,25 @@ class Users extends CI_Controller
 
 
         if ($this->form_validation->run()) {
-            // if email exist into database then only we can change the password
-            $email_check = $this->db->where('email', (string)$data['email'])->from('users')->count_all_results();
+            $status = $this->Api->resetpassword($data);
 
-            if ($email_check > 0) {
-                if ($data['password'] != $data['confirm_password']) {
-                    $data['error'] = 'The Entered Password and Confirm Password are not Same';
-                    $this->load->view('forget_password', $data);
-                } else {
-                    // hash the password
-                    $hash_password = password_hash($data['password'], PASSWORD_DEFAULT);
-
-
-                    // Now change the password into the database
-
-                    $this->db->set('password', $hash_password)->where('email', (string)$data['email'])->update('users');
-
-                    echo 'Password changed Successfully';
-                }
-            } else {
+            if ($status == 1) {
+                echo 'Password changed Successfully';
+            } else if ($status == 3) {
                 $data['error'] = 'Email Id Not Exist';
+                $this->load->view('forget_password', $data);
+            }elseif($status==2){
+                $data['error'] = 'The Entered Password and Confirm Password are not Same';
                 $this->load->view('forget_password', $data);
             }
         } else {
             $this->load->view('forget_password', $data);
-        }
+        } 
     }
 
-    private function checkBlockedStatus($email, $username)
+    public function logout()
     {
-        $query1 = $this->db->select('last_failed_attempt')->from('users')->where(($email!=null ? 'email' : 'username'), ($email!=null ? $email : $username))->get();
-
-        $failed_attempts = $this->db->select('failed_attempts')->from('users')->where($email!=null ? 'email' : 'username', $email!=null ? $email : $username)->get()->row()->failed_attempts;
-
-        date_default_timezone_set('Asia/Kolkata');
-
-        $row = $query1->row();
-        $lastFailedAttempt = strtotime($row->last_failed_attempt);
-        $currentTimestamp = time();
-
-        if ($failed_attempts >= 3 && $currentTimestamp - $lastFailedAttempt < 30 * 60) {
-            return true;
-        }
-        return false;
+        $this->session->sess_destroy();
+        header("Location: /AuthProject/Users/Login");
     }
 }
