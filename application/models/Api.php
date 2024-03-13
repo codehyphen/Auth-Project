@@ -11,11 +11,11 @@ class Api extends CI_Model
 
         if ($email_check > 0) {
 
-            $query = $this->db->select('password')->from('users')->where('email', (string)$data['emailorUsername'])->get();
-            $row = $query->row();
+            $row = $this->db->select('password')->from('users')->where('email', (string)$data['emailorUsername'])->get()->row();
             $password = $row->password;
 
-            // $failed_attempts = $this->db->select('failed_attempts')->where('email', (string)$data['emailorUsername'])->get();
+            // $row = $this->db->query("SELECT * FROM users WHERE email = ?", $data['emailorUsername'])->row();
+            // $password = $row->password;
 
             $blockedStatus = $this->checkBlockedStatus((string)$data['emailorUsername'], null);
 

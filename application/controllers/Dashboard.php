@@ -13,7 +13,6 @@ class Dashboard extends CI_Controller
     }
     public function index() {
         // Load dashboard view
-        echo $this->session->userdata('session_expire');
         $this->load->view('dashboard');
     }
 }
