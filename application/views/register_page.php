@@ -22,7 +22,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <style>
-        .error{
+        .error {
             color: red;
         }
     </style>
@@ -33,14 +33,24 @@ defined('BASEPATH') or exit('No direct script access allowed');
     <h2>Create Account</h2>
     <form method="post">
         <label>Username</label>
-        <input type="text" name="username" placeholder="Enter Username" value="<?=set_value('username', (!empty($username) ? $username : ''))?>"><br>
-        <?=form_error('username')?>
+        <input type="text" name="username" placeholder="Enter Username" value="<?= set_value('username', (!empty($username) ? $username : '')) ?>"><br>
+        <?= form_error('username') ?>
         <label>Email</label>
-        <input type="text" name="email" placeholder="Enter Email" value="<?=set_value('email', (!empty($email) ? $email : ''))?>"><br>
-        <?=form_error('email')?>
+        <input type="text" name="email" placeholder="Enter Email" value="<?= set_value('email', (!empty($email) ? $email : '')) ?>"><br>
+        <?= form_error('email') ?>
         <label>Password</label>
-        <input type="password" name="password" placeholder="Enter Password" value="<?=set_value('password', (!empty($password) ? $password : ''))?>"><br>
-        <?=form_error('password')?>
+        <input type="password" name="password" placeholder="Enter Password" value="<?= set_value('password', (!empty($password) ? $password : '')) ?>"><br>
+        <?= form_error('password') ?>
+        <!-- <label>Role</label>
+            <input type="radio" name="gender" value="Male" <?php if (!empty($arr->id) && $arr->role == 'HR') {
+                                                                echo "checked";
+                                                            } ?>>HR
+            <input type="radio" name="gender" value="Female" <?php if (!empty($arr->id) && $arr->role == 'Developer') {
+                                                                    echo "checked";
+                                                                } ?>>Developer -->
+        <!-- <div class="form-group">
+        </div> -->
+        <br/>
         <input type="submit" name="signup" value="Register">
     </form>
 

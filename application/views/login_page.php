@@ -29,8 +29,8 @@ defined('BASEPATH') or exit('No direct script access allowed');
 </head>
 
 <body>
-    <h2>Login</h2>
     <span class="error"><?php echo (!empty($error) ? $error : '') ?></span><br>
+    <h2>Login</h2>
     <form method="post">
         <label>Email or Username</label>
         <input type="text" name="emailorUsername" placeholder="Enter Email or Username" value="<?= set_value('emailorUsername', (!empty($email) ? $email : '')) ?>"><br>

@@ -20,8 +20,7 @@ class Users extends CI_Controller
         $data['password'] = $this->input->post('password');
 
 
-        $this->form_validation->set_rules('recorded...yet
-        Set Goal to find your learning path and track your skill progres', 'Username', 'required|trim');
+        $this->form_validation->set_rules('username', 'Username', 'required|trim');
         $this->form_validation->set_rules('email', 'Email', 'required|trim|valid_email');
         $this->form_validation->set_rules('password', 'Password', 'required|trim');
 
@@ -37,6 +36,7 @@ class Users extends CI_Controller
                 $this->load->view('register_page', $data);
             }
         } else {
+            
             $this->load->view('register_page', $data);
         }
     }
@@ -72,9 +72,12 @@ class Users extends CI_Controller
             } else if($status==3){
                 $data['error'] = 'Login After 30 min';
                 $this->load->view('login_page', $data);
-            } else{
+            } else if($status==4){
                 $data['error'] = 'You dont have access to the page';
                 $this->load->view('login_page', $data);
+            }else{
+                $data['error'] = "You need to reset you password for security purposes";
+                $this->load->view('forget_password', $data);
             }
         } else {
             $this->load->view('login_page', $data);
@@ -100,8 +103,11 @@ class Users extends CI_Controller
             } else if ($status == 3) {
                 $data['error'] = 'Email Id Not Exist';
                 $this->load->view('forget_password', $data);
-            }elseif($status==2){
+            }else if($status==2){
                 $data['error'] = 'The Entered Password and Confirm Password are not Same';
+                $this->load->view('forget_password', $data);
+            }else{
+                $data['error'] = 'Old Password and New Password Must Not same';
                 $this->load->view('forget_password', $data);
             }
         } else {
