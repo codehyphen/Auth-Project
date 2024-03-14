@@ -11,7 +11,8 @@ class Dashboard extends CI_Controller
             header("Location: /AuthProject/Users/Login"); // Redirect to login page if session is expired or user is not logged in
         }
     }
-    public function index() {
+    public function index()
+    {
         // Load dashboard view
         $this->load->view('dashboard');
     }

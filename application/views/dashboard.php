@@ -20,7 +20,7 @@
 </head>
 
 <body>
-    <h1>Welcome To Home</h1>
+    <h1>Welcome To HR Portal</h1>
     <form id="logout-form" action="<?php echo site_url('/Users/logout'); ?>" method="post">
         <button type="submit">Logout</button>
     </form>
