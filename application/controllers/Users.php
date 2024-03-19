@@ -55,33 +55,24 @@ class Users extends CI_Controller
         $this->form_validation->set_rules('emailorUsername', 'Email or Username', 'required|trim');
         $this->form_validation->set_rules('password', 'Password', 'required|trim');
 
-        if ($this->form_validation->run()) {
-            $status = $this->Api->login($data);
-
-            if ($status == 1) {
-                $user_data = array(
-                    'emailorUsername' => $data['emailorUsername'],
-                );
-                $this->session->set_userdata('user_data', $user_data);
-                // Set session expiration time
-                $this->session->set_userdata('session_expire', time() + 600);
-                header("Location: /AuthProject/Dashboard");
-            } else if ($status == 2) {
-                $data['error'] = 'Invalid Credentials';
-                $this->load->view('login_page', $data);
-            } else if ($status == 3) {
-                $data['error'] = 'Login After 30 min';
-                $this->load->view('login_page', $data);
-            } else if ($status == 4) {
-                $data['error'] = 'You dont have access to the page';
-                $this->load->view('login_page', $data);
-            } else {
-                $data['error'] = "You need to reset you password for security purposes";
-                $this->load->view('forget_password', $data);
-            }
-        } else {
-            $this->load->view('login_page', $data);
+        if (!$this->form_validation->run()) {
+            return $this->load->view('login_page', $data);
         }
+        
+        $status = $this->Api->login($data);
+
+        if ($status) {
+            $data['error'] = $status;
+            return $this->load->view('login_page', $data);
+        }
+
+        $user_data = array(
+            'emailorUsername' => $data['emailorUsername'],
+        );
+        $this->session->set_userdata('user_data', $user_data);
+        // Set session expiration time
+        $this->session->set_userdata('session_expire', time() + 600);
+        header("Location: /AuthProject/Dashboard");
     }
 
     public function resetpassword()
@@ -106,7 +97,6 @@ class Users extends CI_Controller
         } else {
             echo 'Password changed Successfully';
         }
-        
     }
 
     public function logout()
