@@ -24,21 +24,17 @@ class Users extends CI_Controller
         $this->form_validation->set_rules('email', 'Email', 'required|trim|valid_email');
         $this->form_validation->set_rules('password', 'Password', 'required|trim');
 
-        if ($this->form_validation->run()) {
-            $status = $this->Api->register($data);
-            if ($status == 1) {
-                echo "Thank you for Creating Account, you can Login Now";
-            } else if ($status == 2) {
-                $data['error'] = "Username Not available";
-                $this->load->view('register_page', $data);
-            } else {
-                $data['error'] = "Email Already Registered";
-                $this->load->view('register_page', $data);
-            }
-        } else {
-
-            $this->load->view('register_page', $data);
+        if (!$this->form_validation->run()) {
+            return $this->load->view('register_page', $data);
         }
+
+        $status = $this->Api->register($data);
+
+        if ($status) {
+            $data['error'] = $status;
+            return $this->load->view('register_page', $data);
+        }
+        header("Location: /AuthProject/Users/Login?success=true");
     }
 
     public function login()
@@ -58,7 +54,7 @@ class Users extends CI_Controller
         if (!$this->form_validation->run()) {
             return $this->load->view('login_page', $data);
         }
-        
+
         $status = $this->Api->login($data);
 
         if ($status) {

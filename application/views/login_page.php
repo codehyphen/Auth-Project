@@ -26,6 +26,16 @@ defined('BASEPATH') or exit('No direct script access allowed');
             color: red;
         }
     </style>
+    <script>
+        // Check if the URL contains a success parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const success = urlParams.get('success');
+
+        // If success parameter is present, show an alert
+        if (success === 'true') {
+            alert("Account created successfully!");
+        }
+    </script>
 </head>
 
 <body>

@@ -15,15 +15,15 @@ class Api extends CI_Model
         if (!$userinfo?->email || !$userinfo?->username) {
             return "Invalid Credentials";
         }
-        
+
         $blockedStatus = $this->checkBlockedStatus($userinfo);
-        
+
         if ($blockedStatus) {
             return "Login After 30 min";
         }
 
         if (!password_verify((string)$data['password'], $userinfo->password)) {
-            
+
             $this->db
                 ->set('failed_attempts', 'failed_attempts+1', FALSE)
                 ->where('email', (string)$data['emailorUsername'])
@@ -34,28 +34,28 @@ class Api extends CI_Model
                 ->where('email', (string)$data['emailorUsername'])
                 ->or_where('username', (string)$data['emailorUsername'])
                 ->update('users');
-            
+
             $data = array(
                 'user_id' => $userinfo->userid,
                 'event_id' => 3,
                 'status' => 'FAILED',
                 'message' => 'Invalid Credentials'
             );
-            
+
             $this->db->insert('event_logs', $data);
             return "Invalid Credentials";
         }
         $roleid_from_roles = $this->db
-                                ->select('role_id')
-                                ->from('roles')
-                                ->where('title', 'HR')
-                                ->get()->row()->role_id;
+            ->select('role_id')
+            ->from('roles')
+            ->where('title', 'HR')
+            ->get()->row()->role_id;
 
         $roleid_from_roleusermap = $this->db
-                                        ->select('role_id')
-                                        ->from('role_user_map')
-                                        ->where('user_id', $userinfo->userid)
-                                        ->get()->row()->role_id;
+            ->select('role_id')
+            ->from('role_user_map')
+            ->where('user_id', $userinfo->userid)
+            ->get()->row()->role_id;
 
         $last_password_update_date = strtotime($userinfo->password_update_date);
 
@@ -110,18 +110,19 @@ class Api extends CI_Model
         $username_check = $this->db->like('username', (string)$data['username'])->from('users')->count_all_results();
         $email_check = $this->db->like('email', (string)$data['email'])->from('users')->count_all_results();
 
-        if ($username_check == 0 && $email_check == 0) {
-            $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
-
-            date_default_timezone_set('Asia/Kolkata');
-            $data['password_update_date'] = date("Y-m-d H:i:s");;
-            $this->db->insert('users', $data);
-            return 1;
-        } else if ($username_check > 0) {
-            return 2;
-        } else if ($email_check > 0) {
-            return 3;
+        if ($email_check > 0) {
+            return "Email Already Registered";
         }
+
+        if ($username_check > 0) {
+            return "Username Not available";
+        }
+        
+        $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
+
+        date_default_timezone_set('Asia/Kolkata');
+        $data['password_update_date'] = date("Y-m-d H:i:s");;
+        $this->db->insert('users', $data);
     }
 
     public function resetpassword($data)
