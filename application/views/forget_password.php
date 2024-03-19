@@ -28,8 +28,8 @@
     <span class="error"><?php echo (!empty($error) ? $error : '')?></span>
     <h2>Create New Password</h2>
     <form method="post">
-        <label>Email</label>
-        <input type="text" name="email" placeholder="Enter Email"><br>
+        <label>Email or Username</label>
+        <input type="text" name="email" placeholder="Enter Email or Username"><br>
         <?= form_error('email') ?>
         <label>New Password</label>
         <input type="password" name="password" placeholder="Enter Password"><br>

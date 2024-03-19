@@ -81,8 +81,6 @@ class Api extends CI_Model
                 return 3;
             }
 
-
-
             if (password_verify((string)$data['password'], $password)) {
 
                 $roleid_from_roles = $this->db->select('role_id')->from('roles')->where('title', 'HR')->get()->row()->role_id;
@@ -104,10 +102,10 @@ class Api extends CI_Model
                             'status' => 'SUCCESS',
                             'message' => 'Logged In'
                         );
-    
+
                         $this->db->insert('event_logs', $data);
                         return 1;
-                    }else{
+                    } else {
                         return 5;
                     }
                 } else {
@@ -158,7 +156,7 @@ class Api extends CI_Model
 
         if ($username_check == 0 && $email_check == 0) {
             $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
-            
+
             date_default_timezone_set('Asia/Kolkata');
             $data['password_update_date'] = date("Y-m-d H:i:s");;
             $this->db->insert('users', $data);
@@ -172,25 +170,32 @@ class Api extends CI_Model
 
     public function resetpassword($data)
     {
-        // if email exist into database then only we can change the password
-        $email_check = $this->db->where('email', (string)$data['email'])->from('users')->count_all_results();
-        $old_password = $this->db->select('password')->where('email', (string)$data['email'])->from('users')->get()->row()->password;
-        if ($email_check > 0) {
-            if ($data['password'] != $data['confirm_password']) {
-                return 2;
-            } else {
-                if(password_verify($data['password'], $old_password)){
-                    return 4;
-                }else{
-                    $hash_password = password_hash($data['password'], PASSWORD_DEFAULT);
-                    $this->db->set('password', $hash_password)->where('email', (string)$data['email'])->update('users');
-                    $this->db->set('password_update_date', 'NOW()', FALSE)->where('email', (string)$data['email'])->update('users');
-                    return 1;
-                }
-            }
-        } else {
-            return 3;
+        $userinfo = $this->db
+                        ->where('email', (string)$data['email'])
+                        ->or_where('username', (string)$data['email'])
+                        ->from('users')
+                        ->get()->row();
+
+        if (!$userinfo?->email || !$userinfo?->username) {
+            return "User Not Exist";
         }
+
+        if ($data['password'] != $data['confirm_password']) {
+            return "The Entered Password and Confirm Password are not Same";
+        }
+
+        if (password_verify($data['password'], $userinfo?->password) || password_verify($data['password'], $userinfo?->old_password) ) {
+            return "Old Password and New Password Must Not same";
+        }
+
+        $hash_password = password_hash($data['password'], PASSWORD_DEFAULT);
+        $this->db
+             ->set('old_password', $userinfo?->password)
+             ->set('password', $hash_password)
+             ->set('password_update_date', 'NOW()', FALSE)
+             ->where('email', (string)$data['email'])
+             ->or_where('username', (string)$data['email'])
+             ->update('users');
     }
 
     private function checkBlockedStatus($email, $username)
