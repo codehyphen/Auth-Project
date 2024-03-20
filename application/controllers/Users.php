@@ -8,7 +8,7 @@ class Users extends CI_Controller
         parent::__construct();
         $this->load->library('form_validation');
         $this->load->helper('form');
-        $this->load->model('Api');
+        $this->load->model('Auth_Model');
         $this->load->helper('url');
     }
 
@@ -28,7 +28,7 @@ class Users extends CI_Controller
             return $this->load->view('register_page', $data);
         }
 
-        $status = $this->Api->register($data);
+        $status = $this->Auth_Model->register($data);
 
         if ($status) {
             $data['error'] = $status;
@@ -40,9 +40,13 @@ class Users extends CI_Controller
     public function login()
     {
 
-        if ($this->session->userdata('user_data') || time() < $this->session->userdata('session_expire')) {
+        if ($this->session->userdata('user_data')) {
+            if(time()>$this->session->userdata('session_expire')){
+                $this->logout();
+            }
             header("Location: /AuthProject/Dashboard"); // Redirect to login page if session is expired or user is not logged in
         }
+
 
         $data['emailorUsername'] = $this->input->post('emailorUsername');
         $data['password'] = $this->input->post('password');
@@ -55,7 +59,7 @@ class Users extends CI_Controller
             return $this->load->view('login_page', $data);
         }
 
-        $status = $this->Api->login($data);
+        $status = $this->Auth_Model->login($data);
 
         if ($status) {
             $data['error'] = $status;
@@ -67,7 +71,7 @@ class Users extends CI_Controller
         );
         $this->session->set_userdata('user_data', $user_data);
         // Set session expiration time
-        $this->session->set_userdata('session_expire', time() + 600);
+        $this->session->set_userdata('session_expire', time() + 30);
         header("Location: /AuthProject/Dashboard");
     }
 
@@ -86,7 +90,7 @@ class Users extends CI_Controller
             return $this->load->view('forget_password', $data);
         }
 
-        $status = $this->Api->resetpassword($data);
+        $status = $this->Auth_Model->reset_password($data);
         if ($status) {
             $data['error'] = $status;
             $this->load->view('forget_password', $data);
@@ -97,7 +101,7 @@ class Users extends CI_Controller
 
     public function logout()
     {
-        $this->Api->logout($this->session->userdata('user_data')['emailorUsername']);
+        $this->Auth_Model->logout($this->session->userdata('user_data')['emailorUsername']);
         $this->session->sess_destroy();
         header("Location: /AuthProject/Users/Login");
     }

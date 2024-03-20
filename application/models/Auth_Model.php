@@ -2,7 +2,7 @@
 
 defined('BASEPATH') or exit('No Direct Script Access Allowed');
 
-class Api extends CI_Model
+class Auth_Model extends CI_Model
 {
     public function login($data)
     {
@@ -10,11 +10,13 @@ class Api extends CI_Model
             ->where('email', (string)$data['emailorUsername'])
             ->or_where('username', (string)$data['emailorUsername'])
             ->from('users')
-            ->get()->row();
+            ->get();
 
-        if (!$userinfo?->email || !$userinfo?->username) {
+        if ($userinfo->num_rows() === 0) {
             return "Invalid Credentials";
         }
+
+        $userinfo = $userinfo->row();
 
         $blockedStatus = $this->checkBlockedStatus($userinfo);
 
@@ -26,23 +28,16 @@ class Api extends CI_Model
 
             $this->db
                 ->set('failed_attempts', 'failed_attempts+1', FALSE)
-                ->where('email', (string)$data['emailorUsername'])
-                ->or_where('username', (string)$data['emailorUsername'])
-                ->update('users');
-            $this->db
                 ->set('last_failed_attempt', 'NOW()', FALSE)
-                ->where('email', (string)$data['emailorUsername'])
-                ->or_where('username', (string)$data['emailorUsername'])
+                ->where('user_id', $userinfo->user_id)
                 ->update('users');
 
-            $data = array(
-                'user_id' => $userinfo->userid,
+            $this->db->insert('event_logs', [
+                'user_id' => $userinfo->user_id,
                 'event_id' => 3,
                 'status' => 'FAILED',
                 'message' => 'Invalid Credentials'
-            );
-
-            $this->db->insert('event_logs', $data);
+            ]);
             return "Invalid Credentials";
         }
         $roleid_from_roles = $this->db
@@ -52,10 +47,10 @@ class Api extends CI_Model
             ->get()->row()->role_id;
 
         $roleid_from_roleusermap = $this->db
-            ->select('role_id')
             ->from('role_user_map')
-            ->where('user_id', $userinfo->userid)
-            ->get()->row()->role_id;
+            ->where('user_id', $userinfo->user_id)
+            ->where('role_id', $roleid_from_roles)
+            ->get()->num_rows();
 
         $last_password_update_date = strtotime($userinfo->password_update_date);
 
@@ -64,7 +59,7 @@ class Api extends CI_Model
 
         $time_difference = $current_date - $last_password_update_date;
 
-        if ($roleid_from_roles !== $roleid_from_roleusermap) {
+        if ($roleid_from_roleusermap == 0) {
             return "You dont have access to the page";
         }
         if ($time_difference > (90 * 24 * 60 * 60)) {
@@ -76,34 +71,27 @@ class Api extends CI_Model
             ->where('email', (string)$data['emailorUsername'])
             ->update('users');
 
-        $data = array(
-            'user_id' => $userinfo->userid,
+        $this->db->insert('event_logs', [
+            'user_id' => $userinfo->user_id,
             'event_id' => 1,
             'status' => 'SUCCESS',
             'message' => 'Logged In'
-        );
-
-        $this->db->insert('event_logs', $data);
+        ]);
     }
     public function logout($emailorUsername)
     {
-        $userid = '';
-        $email_check = $this->db->where('email', (string)$emailorUsername)->from('users')->count_all_results();
-        $username_check = $this->db->where('username', (string)$emailorUsername)->from('users')->count_all_results();
-
-        if ($email_check > 0) {
-            $userid = $this->db->select('userid')->where('email', $emailorUsername)->from('users')->get()->row()->userid;
-        } else if ($username_check > 0) {
-            $userid = $this->db->select('userid')->where('username', $emailorUsername)->from('users')->get()->row()->userid;
-        }
-
-        $data = array(
-            'user_id' => $userid,
+        $user_id = $this->db
+                        ->where('email', (string)$emailorUsername)
+                        ->or_where('username', (string)$emailorUsername)
+                        ->from('users')
+                        ->get()->row()->user_id;
+        
+        $this->db->insert('event_logs', [
+            'user_id' => $user_id,
             'event_id' => 2,
             'status' => 'SUCCESS',
             'message' => 'LoggedOut'
-        );
-        $this->db->set('message', 'Logged Out')->where('user_id', $userid)->update('event_logs');
+        ]);
     }
     public function register($data)
     {
@@ -117,7 +105,7 @@ class Api extends CI_Model
         if ($username_check > 0) {
             return "Username Not available";
         }
-        
+
         $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
 
         date_default_timezone_set('Asia/Kolkata');
@@ -125,24 +113,29 @@ class Api extends CI_Model
         $this->db->insert('users', $data);
     }
 
-    public function resetpassword($data)
+    public function reset_password($data)
     {
         $userinfo = $this->db
             ->where('email', (string)$data['email'])
             ->or_where('username', (string)$data['email'])
             ->from('users')
-            ->get()->row();
+            ->get();
 
-        if (!$userinfo?->email || !$userinfo?->username) {
+        if ($userinfo->num_rows() === 0) {
             return "User Not Exist";
         }
 
-        if ($data['password'] != $data['confirm_password']) {
+        $userinfo = $userinfo->row();
+
+        if ($data['password'] !== $data['confirm_password']) {
             return "The Entered Password and Confirm Password are not Same";
         }
 
-        if (password_verify($data['password'], $userinfo?->password) || password_verify($data['password'], $userinfo?->old_password)) {
-            return "Old Password and New Password Must Not same";
+        if (password_verify($data['password'], $userinfo?->password)) {
+            return "New Password cannot be same as last password";
+        }
+        if (password_verify($data['password'], $userinfo?->old_password)) {
+            return "New Password cannot be same as second last password";
         }
 
         $hash_password = password_hash($data['password'], PASSWORD_DEFAULT);
@@ -150,8 +143,7 @@ class Api extends CI_Model
             ->set('old_password', $userinfo?->password)
             ->set('password', $hash_password)
             ->set('password_update_date', 'NOW()', FALSE)
-            ->where('email', (string)$data['email'])
-            ->or_where('username', (string)$data['email'])
+            ->where('user_id', $userinfo->user_id)
             ->update('users');
     }
 
