@@ -8,7 +8,7 @@ class Users extends CI_Controller
         parent::__construct();
         $this->load->library('form_validation');
         $this->load->helper('form');
-        $this->load->model('Auth_Model');
+        $this->load->model('User_Model');
         $this->load->helper('url');
     }
 
@@ -28,7 +28,7 @@ class Users extends CI_Controller
             return $this->load->view('register_page', $data);
         }
 
-        $status = $this->Auth_Model->register($data);
+        $status = $this->User_Model->register($data);
 
         if ($status) {
             $data['error'] = $status;
@@ -59,7 +59,7 @@ class Users extends CI_Controller
             return $this->load->view('login_page', $data);
         }
 
-        $status = $this->Auth_Model->login($data);
+        $status = $this->User_Model->login($data);
 
         if ($status) {
             $data['error'] = $status;
@@ -90,7 +90,7 @@ class Users extends CI_Controller
             return $this->load->view('forget_password', $data);
         }
 
-        $status = $this->Auth_Model->reset_password($data);
+        $status = $this->User_Model->reset_password($data);
         if ($status) {
             $data['error'] = $status;
             $this->load->view('forget_password', $data);
@@ -101,7 +101,7 @@ class Users extends CI_Controller
 
     public function logout()
     {
-        $this->Auth_Model->logout($this->session->userdata('user_data')['emailorUsername']);
+        $this->User_Model->logout($this->session->userdata('user_data')['emailorUsername']);
         $this->session->sess_destroy();
         header("Location: /AuthProject/Users/Login");
     }
