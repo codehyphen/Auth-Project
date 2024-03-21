@@ -8,7 +8,7 @@ class Users extends CI_Controller
         parent::__construct();
         $this->load->library('form_validation');
         $this->load->helper('form');
-        $this->load->model('User_Model');
+        $this->load->model('User_model', 'usermodel');
         $this->load->helper('url');
     }
 
@@ -19,7 +19,6 @@ class Users extends CI_Controller
         $data['email'] = $this->input->post('email');
         $data['password'] = $this->input->post('password');
 
-
         $this->form_validation->set_rules('username', 'Username', 'required|trim');
         $this->form_validation->set_rules('email', 'Email', 'required|trim|valid_email');
         $this->form_validation->set_rules('password', 'Password', 'required|trim');
@@ -28,7 +27,7 @@ class Users extends CI_Controller
             return $this->load->view('register_page', $data);
         }
 
-        $status = $this->User_Model->register($data);
+        $status = $this->usermodel->register($data);
 
         if ($status) {
             $data['error'] = $status;
@@ -59,7 +58,7 @@ class Users extends CI_Controller
             return $this->load->view('login_page', $data);
         }
 
-        $status = $this->User_Model->login($data);
+        $status = $this->usermodel->login($data);
 
         if ($status) {
             $data['error'] = $status;
@@ -71,17 +70,17 @@ class Users extends CI_Controller
         );
         $this->session->set_userdata('user_data', $user_data);
         // Set session expiration time
-        $this->session->set_userdata('session_expire', time() + 30);
+        $this->session->set_userdata('session_expire', time() + 10*60);
         header("Location: /AuthProject/Dashboard");
     }
 
     public function resetpassword()
     {
-        $data['email'] = $this->input->post('email');
+        $data['emailorUsername'] = $this->input->post('emailorUsername');
         $data['password'] = $this->input->post('password');
         $data['confirm_password'] = $this->input->post('confirm_password');
 
-        $this->form_validation->set_rules('email', 'Email', 'required|trim');
+        $this->form_validation->set_rules('emailorUsername', 'Email or Username', 'required|trim');
         $this->form_validation->set_rules('password', 'Password', 'required|trim');
         $this->form_validation->set_rules('confirm_password', 'Confirm Password', 'required|trim');
 
@@ -90,7 +89,7 @@ class Users extends CI_Controller
             return $this->load->view('forget_password', $data);
         }
 
-        $status = $this->User_Model->reset_password($data);
+        $status = $this->usermodel->reset_password($data);
         if ($status) {
             $data['error'] = $status;
             $this->load->view('forget_password', $data);
@@ -101,7 +100,7 @@ class Users extends CI_Controller
 
     public function logout()
     {
-        $this->User_Model->logout($this->session->userdata('user_data')['emailorUsername']);
+        $this->usermodel->logout($this->session->userdata('user_data')['emailorUsername']);
         $this->session->sess_destroy();
         header("Location: /AuthProject/Users/Login");
     }

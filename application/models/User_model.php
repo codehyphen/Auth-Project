@@ -2,15 +2,11 @@
 
 defined('BASEPATH') or exit('No Direct Script Access Allowed');
 
-class User_Model extends CI_Model
+class User_model extends CI_Model
 {
     public function login($data)
     {
-        $user_info = $this->db
-            ->where('email', (string)$data['emailorUsername'])
-            ->or_where('username', (string)$data['emailorUsername'])
-            ->from('users')
-            ->get();
+        $user_info = $this->getUserInfo($data);
 
         if ($user_info->num_rows() === 0) {
             return "Invalid Credentials";
@@ -80,11 +76,7 @@ class User_Model extends CI_Model
     }
     public function logout($emailorUsername)
     {
-        $user_id = $this->db
-                        ->where('email', (string)$emailorUsername)
-                        ->or_where('username', (string)$emailorUsername)
-                        ->from('users')
-                        ->get()->row()->user_id;
+        $user_id = $this->getUserInfo(['emailorUsername' => $emailorUsername])->row()->user_id;
         
         $this->db->insert('event_logs', [
             'user_id' => $user_id,
@@ -115,11 +107,7 @@ class User_Model extends CI_Model
 
     public function reset_password($data)
     {
-        $user_info = $this->db
-            ->where('email', (string)$data['email'])
-            ->or_where('username', (string)$data['email'])
-            ->from('users')
-            ->get();
+        $user_info = $this->getUserInfo($data);
 
         if ($user_info->num_rows() === 0) {
             return "User Not Exist";
@@ -159,5 +147,13 @@ class User_Model extends CI_Model
             return true;
         }
         return false;
+    }
+
+    private function getUserInfo($data){
+        return $this->db
+            ->where('email', (string)$data['emailorUsername'])
+            ->or_where('username', (string)$data['emailorUsername'])
+            ->from('users')
+            ->get();
     }
 }

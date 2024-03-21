@@ -29,7 +29,7 @@
     <h2>Create New Password</h2>
     <form method="post">
         <label>Email or Username</label>
-        <input type="text" name="email" placeholder="Enter Email or Username" value="<?= set_value('emailorUsername', (!empty($email) ? $email : '')) ?>"><br>
+        <input type="text" name="emailorUsername" placeholder="Enter Email or Username" value="<?= set_value('emailorUsername', (!empty($emailorUsername) ? $emailorUsername : '')) ?>"><br>
         <?= form_error('email') ?>
         <label>New Password</label>
         <input type="password" name="password" placeholder="Enter Password"><br>
