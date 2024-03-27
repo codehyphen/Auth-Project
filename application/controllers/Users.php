@@ -66,9 +66,11 @@ class Users extends CI_Controller
         }
 
         $user_data = array(
-            'emailorUsername' => $data['emailorUsername'],
+            'emailorUsername' => $data['emailorUsername']
+            // 'user_id' => $this->db->from('users')->where('email', $data['emailorUsername'])->or_where('username', $data['emailorUsername'])->get()->row()->user_id
         );
         $this->session->set_userdata('user_data', $user_data);
+        $this->session->set_userdata('user_id', $this->db->from('users')->where('email', $data['emailorUsername'])->or_where('username', $data['emailorUsername'])->get()->row()->user_id);
         // Set session expiration time
         $this->session->set_userdata('session_expire', time() + 10*60);
         header("Location: /AuthProject/Dashboard");
